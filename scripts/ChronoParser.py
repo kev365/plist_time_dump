@@ -4,6 +4,9 @@ import csv
 import re
 from datetime import datetime, timezone
 
+# Author
+Kevin Stokes
+
 # Define the script version number
 SCRIPT_VERSION = "1.0"
 
