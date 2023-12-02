@@ -32,6 +32,7 @@ This Python script allows you to extract timestamps from PList files and convert
 `python ChronoParser.py /path/to/plist/files output.tsv`
 
 Output
+
 The script generates a TSV file containing the following columns:
 
 - `UTC Timestamp` ISO 8601 formatted timestamp (UTC Assumed, output will need to be verified).
@@ -50,9 +51,11 @@ Sample Output
 | 2021-12-03T14:30:00.000000Z | 1638533400           | UNIX Timestamp     | timestamp      | records.plist      | /path/to/records.plist     |
 
 Author
+
 Kevin Stokes
 
 Script Version: 1.0
+
 Feel free to use and modify this script. If you encounter any issues or have suggestions for improvements, please open an issue or pull request.
 
 Happy timestamp extraction!
