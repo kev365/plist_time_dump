@@ -38,7 +38,7 @@ The script generates a TSV file containing the following columns:
 
 - `UTC Timestamp` ISO 8601 formatted timestamp (UTC Assumed, output will need to be verified).
 - `Original Value` Original timestamp value.
-- `Timestamp Format` Detected timestamp format.
+- `Timestamp Format` Detected timestamp format. (mostly to help with data verification)
 - `Key` The key in the PList file where the timestamp was found.
 - `File Name` Name of the PList file.
 - `Full Path` Full path to the PList file.
