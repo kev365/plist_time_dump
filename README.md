@@ -1,4 +1,4 @@
-# ChronoParser - PList Timestamp Extractor
+# Plist_Time_Dump - PList Timestamp Extractor
 This project aims to bring unique visibility to mobile forensics investigations by enhancing the ability to seekout timestamps from various plists and export information about them with some contextual information, for review.
 
 ** Note: This is merely a side project for learning some coding skills (with an AI assist) and something that seemed like an interesting personal challenge. Please don't rely on this tool for expert information.
