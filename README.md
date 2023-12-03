@@ -7,6 +7,7 @@ This Python script allows you to extract timestamps from PList files and convert
 
 ## Features
 
+- Currently, only searches for keys with "time" or "date" in the key name.
 - Extracts timestamps from PList files in a specified directory.
 - Converts timestamps to ISO 8601 format.
 - Outputs the results to a tab-separated values (TSV) file.
