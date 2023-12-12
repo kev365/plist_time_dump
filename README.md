@@ -60,3 +60,11 @@ Script Version: 1.0
 Feel free to use and modify this script. If you encounter any issues or have suggestions for improvements, please open an issue or pull request.
 
 Happy timestamp extraction!
+
+
+Known Issues:
+- There are some non-numeric strings it attempts to convert. Not an issue on the output.
+- The custom_format ending in -#### (like -5000) to show time zone, is not converting to UTC.
+- The UNIX timestamps in this format "1670632033.67562" are converting correctly, though are still ID'd are "Unknown_format"
+- The identification of HFS+ timestamps may not be working correctly. In current testing from my dataset, I have no output for this.
+- Read me needs updated for current capabilites.
