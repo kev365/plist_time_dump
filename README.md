@@ -23,7 +23,7 @@ This Python script allows you to extract timestamps from PList files and convert
 2. Open your terminal or command prompt.
 3. Run the script with the following command:
 
-> python ChronoParser.py [directory_to_search] [output_file_path]
+> python  plist_time_dump.py [directory_to_search] [output_file_path]
 
 - `[directory_to_search]`: The directory path to search for PList files.
 - `[output_file_path]`: The path for the output TSV file.
