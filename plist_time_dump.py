@@ -2,9 +2,7 @@ import os
 import plistlib
 import csv
 import re
-from datetime import datetime, timezone
-from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 # Define the script version number
 SCRIPT_VERSION = "1.0"
@@ -28,9 +26,9 @@ def determine_timestamp_format(timestamp_str):
         return "Custom_format"
 
     # Check if it's a numeric timestamp (Unix or HFS+)
-    elif re.match(r'^\d+$', timestamp_str):
+    elif timestamp_str.isdigit():
         timestamp_value = int(timestamp_str)
-        if len(timestamp_str) == 10 or timestamp_value >= UNIX_HFS_THRESHOLD:
+        if len(timestamp_str) == 10 or (len(timestamp_str) > 10 and timestamp_value < 2**32):
             return "Unix_timestamp"
         else:
             return "HFS_timestamp"
@@ -50,15 +48,20 @@ def is_timestamp_in_range(timestamp_str, years=15):
 
 def convert_unix_timestamp(timestamp_str):
     try:
-        if '.' not in timestamp_str:
-            timestamp_str += '.000000'
+        # Convert the timestamp string to a float
         timestamp_float = float(timestamp_str)
-        
+
+        # Check if the timestamp is out of the valid range for Unix timestamps
         if timestamp_float < 0 or timestamp_float >= 2**32:
             raise ValueError("Timestamp out of valid range.")
 
+        # Convert the Unix timestamp to a UTC datetime object
+        # If the original timestamp included microseconds, they will be preserved
         timestamp_utc = datetime.fromtimestamp(timestamp_float, tz=timezone.utc)
+
+        # Format the timestamp into ISO 8601 format
         formatted_timestamp = timestamp_utc.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+
         return formatted_timestamp
         
     except ValueError as e:
@@ -141,12 +144,24 @@ def extract_timestamps_from_plist(plist_data, current_key_path=""):
         for key, value in plist_data.items():
             current_key = f"{current_key_path}/{key}" if current_key_path else key
 
-            # Check if the key contains "timestamp", "date", or "time" (case-insensitive)
+
+            # Existing check for keys containing "timestamp", "date", or "time"
             if re.search(r'date|time', key, re.IGNORECASE) and isinstance(value, str):
                 formatted_timestamp = parse_utc_timestamp(value)
                 if formatted_timestamp and "1970" not in formatted_timestamp:
                     timestamps.append((formatted_timestamp, value, current_key))
                 found_timestamp = True
+
+            # New check for numeric values
+            elif isinstance(value, str) and value.isdigit():
+                length = len(value)
+                if length in [10, 13, 16, 19]:
+                    timestamp_format = determine_timestamp_format(value)
+                    if timestamp_format in ["Unix_timestamp", "HFS_timestamp"]:
+                        formatted_timestamp = parse_utc_timestamp(value)
+                        if formatted_timestamp:
+                            timestamps.append((formatted_timestamp, value, current_key))
+                            found_timestamp = True
 
             # Recursively search nested dictionaries
             if isinstance(value, (dict, list)):
@@ -165,9 +180,26 @@ def extract_timestamps_from_plist(plist_data, current_key_path=""):
 
     return timestamps if found_timestamp else None
 
+def get_file_type(plist_path):
+    """Determine if the file is a plist or a bplist."""
+    try:
+        with open(plist_path, 'rb') as file:
+            header = file.read(8)  # Read first 8 bytes for header
+            if header.startswith(b'bplist'):
+                return 'bplist'
+            elif header.startswith(b'<?xml'):
+                return 'plist'
+            else:
+                return 'unknown'
+    except Exception as e:
+        print(f"Error determining file type: {e}")
+        return 'error'
+
 def process_file(plist_path, output_file_path):
     with open(output_file_path, 'a', newline='', encoding='utf-8') as output_file:
         csv_writer = csv.writer(output_file, delimiter='\t')
+
+        file_type = get_file_type(plist_path)
 
         try:
             with open(plist_path, 'rb') as plist_file:
@@ -183,7 +215,7 @@ def process_file(plist_path, output_file_path):
                     full_path = os.path.abspath(plist_path)
                     file_name = os.path.basename(plist_path)
                     timestamp_format = determine_timestamp_format(original_value)
-                    csv_writer.writerow([timestamp, original_value, timestamp_format, key, file_name, full_path])
+                    csv_writer.writerow([timestamp, original_value, timestamp_format, key, file_type, file_name, full_path])
         
         # Display the currently evaluated PList file in the terminal
         print(f"Evaluating: {plist_path}")
@@ -192,22 +224,13 @@ def process_directory(directory_path, output_file_path):
     # Prepare the output file with headers
     with open(output_file_path, 'w', newline='', encoding='utf-8') as output_file:
         csv_writer = csv.writer(output_file, delimiter='\t')
-        csv_writer.writerow(['UTC Timestamp', 'Original Value', 'Timestamp Format', 'Key', 'File Name', 'Full Path'])
+        csv_writer.writerow(['UTC Timestamp', 'Original Value', 'Timestamp Format', 'Key', 'File Type', 'File Name', 'Full Path', ])
 
-    # Use ThreadPoolExecutor to process files in parallel
-    with ThreadPoolExecutor() as executor:
-        futures = []
-        for root, _, files in os.walk(directory_path):
-            for file in files:
-                if file.endswith('.plist'):
-                    plist_path = os.path.join(root, file)
-                    # Schedule the processing of each file
-                    future = executor.submit(process_file, plist_path, output_file_path)
-                    futures.append(future)
-
-        # Wait for all threads to complete
-        for future in futures:
-            future.result()
+    for root, _, files in os.walk(directory_path):
+        for file in files:
+            if file.endswith('.plist') or file.endswith('.bplist'):
+                plist_path = os.path.join(root, file)
+                process_file(plist_path, output_file_path)
 
 if __name__ == "__main__":
     import argparse
