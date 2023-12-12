@@ -51,16 +51,7 @@ Sample Output
 | 2022-11-05T12:15:00.000000Z | 2022-11-05 12:15:00  | ISO 8601           | event_time     | events.plist       | /path/to/events.plist      |
 | 2021-12-03T14:30:00.000000Z | 1638533400           | UNIX Timestamp     | timestamp      | records.plist      | /path/to/records.plist     |
 
-Author
-
-Kevin Stokes
-
-Script Version: 1.0
-
-Feel free to use and modify this script. If you encounter any issues or have suggestions for improvements, please open an issue or pull request.
-
-Happy timestamp extraction!
-
+Author: Kevin Stokes
 
 Known Issues:
 - There are some non-numeric strings it attempts to convert. Not an issue on the output.
