@@ -23,14 +23,16 @@ This Python script allows you to extract timestamps from PList files and convert
 2. Open your terminal or command prompt.
 3. Run the script with the following command:
 
-> python  plist_time_dump.py [directory_to_search] [output_file_path]
+> python  plist_time_dump.py [directory_to_search] [output_file_path] [--validate]
 
 - `[directory_to_search]`: The directory path to search for PList files.
 - `[output_file_path]`: The path for the output TSV file.
+- `--validate`: Optional flag to enable additional timestamp validation checks
 
 ## Example Usage
 
 `python plist_time_dump.py /path/to/plist/files output.tsv`
+`python plist_time_dump.py /path/to/plist/files output.tsv --validate`
 
 Output
 
@@ -42,6 +44,15 @@ The script generates a TSV file containing the following columns:
 - `Key` The key in the PList file where the timestamp was found.
 - `File Name` Name of the PList file.
 - `Full Path` Full path to the PList file.
+- `Validation` (When --validate is used) Shows validation status or potential issues found
+
+When using --validate, the validation column will mark  timestamps with:
+- "future_date" - Timestamps after current date
+- "pre_1970" - Timestamps before 1970
+- "too_old" - Timestamps more than 15 years in the past
+- "too_future" - Timestamps more than 15 years in the future
+- "invalid_format" - Timestamps that don't match expected formats
+- "valid" - Timestamps that pass all validation checks, but make sure to do your own verification.
 
 Sample Output
 | UTC Timestamp           | Original Value        | Timestamp Format   | Key            | File Name          | Full Path                  |
