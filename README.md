@@ -1,5 +1,5 @@
 # Plist_Time_Dump - PList Timestamp Extractor
-This project aims to bring unique visibility to mobile forensics investigations by enhancing the ability to seekout timestamps from various plists and export information about them with some contextual information, for review.
+This project aims to bring unique visibility to mobile forensics investigations by enhancing the ability to seekout timestamps from various plists and export contextual information about them, for review.
 
 ** Note: This is merely a side project for learning some coding skills (with an AI assist) and something that seemed like an interesting personal challenge. Please don't rely on this tool for expert information.
 
@@ -30,7 +30,7 @@ This Python script allows you to extract timestamps from PList files and convert
 
 ## Example Usage
 
-`python ChronoParser.py /path/to/plist/files output.tsv`
+`python plist_time_dump.py /path/to/plist/files output.tsv`
 
 Output
 

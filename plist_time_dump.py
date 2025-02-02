@@ -36,14 +36,48 @@ def determine_timestamp_format(timestamp_str):
     else:
         return "Unknown_format"
 
-def is_timestamp_in_range(timestamp_str, years=15):
-    """Check if the timestamp is within 'years' years from the current year."""
+def is_timestamp_in_range(timestamp_str, years=15, validate=False):
+    """
+    Check if the timestamp is within acceptable ranges and formats.
+    Args:
+        timestamp_str: The timestamp string to validate
+        years: Number of years to allow before/after current year
+        validate: If True, perform additional validation checks
+    Returns:
+        tuple: (is_valid, reason) if validate=True, otherwise just boolean
+    """
     try:
-        timestamp_year = datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S.%fZ").year
+        timestamp = datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S.%fZ")
         current_year = datetime.now().year
-        return current_year - years <= timestamp_year <= current_year + years
+        
+        if not validate:
+            # Original behavior - just check year range
+            return current_year - years <= timestamp.year <= current_year + years
+            
+        # Additional validation checks
+        issues = []
+        
+        # Check for future dates
+        if timestamp > datetime.now(timezone.utc):
+            issues.append("future_date")
+            
+        # Check for dates before 1970
+        if timestamp.year < 1970:
+            issues.append("pre_1970")
+            
+        # Check if too far from current date
+        if timestamp.year < current_year - years:
+            issues.append("too_old")
+        elif timestamp.year > current_year + years:
+            issues.append("too_future")
+            
+        if issues:
+            return False, ",".join(issues)
+        return True, "valid"
+        
     except ValueError:
-        # In case of parsing error, consider the timestamp as out of range
+        if validate:
+            return False, "invalid_format"
         return False
 
 def convert_unix_timestamp(timestamp_str):
@@ -195,7 +229,7 @@ def get_file_type(plist_path):
         print(f"Error determining file type: {e}")
         return 'error'
 
-def process_file(plist_path, output_file_path):
+def process_file(plist_path, output_file_path, validate=False):
     with open(output_file_path, 'a', newline='', encoding='utf-8') as output_file:
         csv_writer = csv.writer(output_file, delimiter='\t')
 
@@ -211,26 +245,41 @@ def process_file(plist_path, output_file_path):
         timestamps = extract_timestamps_from_plist(plist_data)
         if timestamps:
             for timestamp, original_value, key in timestamps:
-                if is_timestamp_in_range(timestamp):  # Check if the timestamp is in range
+                validation_result = is_timestamp_in_range(timestamp, validate=validate)
+                
+                if validate:
+                    is_valid, reason = validation_result
+                else:
+                    is_valid = validation_result
+                    reason = "not_validated"
+                
+                if not validate or (validate and is_valid):
                     full_path = os.path.abspath(plist_path)
                     file_name = os.path.basename(plist_path)
                     timestamp_format = determine_timestamp_format(original_value)
-                    csv_writer.writerow([timestamp, original_value, timestamp_format, key, file_type, file_name, full_path])
+                    row = [timestamp, original_value, timestamp_format, key, 
+                          file_type, file_name, full_path]
+                    if validate:
+                        row.append(reason)
+                    csv_writer.writerow(row)
         
-        # Display the currently evaluated PList file in the terminal
         print(f"Evaluating: {plist_path}")
 
-def process_directory(directory_path, output_file_path):
+def process_directory(directory_path, output_file_path, validate=False):
     # Prepare the output file with headers
     with open(output_file_path, 'w', newline='', encoding='utf-8') as output_file:
         csv_writer = csv.writer(output_file, delimiter='\t')
-        csv_writer.writerow(['UTC Timestamp', 'Original Value', 'Timestamp Format', 'Key', 'File Type', 'File Name', 'Full Path', ])
+        headers = ['UTC Timestamp', 'Original Value', 'Timestamp Format', 
+                  'Key', 'File Type', 'File Name', 'Full Path']
+        if validate:
+            headers.append('Validation')
+        csv_writer.writerow(headers)
 
     for root, _, files in os.walk(directory_path):
         for file in files:
             if file.endswith('.plist') or file.endswith('.bplist'):
                 plist_path = os.path.join(root, file)
-                process_file(plist_path, output_file_path)
+                process_file(plist_path, output_file_path, validate)
 
 if __name__ == "__main__":
     import argparse
@@ -238,7 +287,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=f"Extract timestamps from PList files and convert them to ISO 8601 format (Version {SCRIPT_VERSION})")
     parser.add_argument("directory_to_search", help="The directory path to search for PList files.")
     parser.add_argument("output_file_path", help="The path for the output TSV file.")
+    parser.add_argument("--validate", action="store_true", 
+                       help="Enable additional timestamp validation and mark suspicious entries")
     args = parser.parse_args()
     
-    process_directory(args.directory_to_search, args.output_file_path)
+    process_directory(args.directory_to_search, args.output_file_path, args.validate)
     print(f"Processing complete. Results exported to {args.output_file_path}")
