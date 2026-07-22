@@ -1,4 +1,4 @@
-# Plist_Time_Dump - PList Timestamp Extractor
+# plist_time_dump - PList Timestamp Extractor
 This project aims to bring unique visibility to mobile forensics investigations by enhancing the ability to seekout timestamps from various plists and export contextual information about them, for review.
 
 ** Note: This is merely a side project for learning some coding skills (with an AI assist) and something that seemed like an interesting personal challenge. Please don't rely on this tool for expert information.
