@@ -1,0 +1,36 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Generated test fixtures -- rebuilt by tests/make_sqlite_fixtures.py.
+# Never commit sample databases: they are regenerable, and committing binary
+# artifacts here invites real evidence being added by accident.
+tests/sqlite_fixtures/
+
+# Tool output. Runs write TSVs; keep them out of the repo. Beyond the clutter,
+# output generated from a real device image contains personal data and must
+# never be committed.
+*.tsv
+
+# Scratch/agent workspace
+.superpowers/
+.remember/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+.idea/
+.vscode/
+
+# other
+docs/
+tests/
+.claude/
