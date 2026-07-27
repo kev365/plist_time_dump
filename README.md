@@ -199,17 +199,6 @@ truncated source also prints a one-line summary (source count) at the end.
 | 2015-03-04T05:06:07.000000Z | 2015-03-04T05:06:07Z | ISO_8601 | plist | archive.plist | payload→[embedded]/date | name=archive |
 | 2023-07-01T20:38:17.517450Z | 709936697517449984 | Cocoa_nanoseconds_2001 | sqlite | sms.db | message.date(rowid=1) | guid=7F002C80-…; text=… |
 
-## Testing
-
-Stdlib `unittest`, no dependencies. Run every suite:
-
-```
-for t in tests/test_*.py; do python "$t"; done
-```
-
-`tests/make_sqlite_fixtures.py` regenerates the SQLite fixture database used for manual
-end-to-end checks (the generated `tests/sqlite_fixtures/` is git-ignored).
-
 ## Known limitations
 
 - **Bare numbers under a non-temporal key can be false positives.** A value is accepted on
